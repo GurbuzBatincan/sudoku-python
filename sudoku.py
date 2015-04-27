@@ -1,4 +1,5 @@
 from pprint import pprint as pp
+from copy import deepcopy
 import re
 
 class Cell:
@@ -31,12 +32,19 @@ class Sudoku:
     for _ in range(10):
       s.check_individuals()
       s.scan_groups()
+      if s.solved():
+        break
+    if not s.solved():
+      s.start_guessing()
 
   def solved(s):
     return all(cell.num for cell in s.board)
 
+  def unsolved(s):
+    return [cell for cell in s.board if not cell.num]
+
   def check_individuals(s):
-    for cell in s.board:
+    for cell in s.unsolved():
       s.try_solve_cell(cell)
 
   def try_solve_cell(s, cell):
@@ -77,6 +85,17 @@ class Sudoku:
         if ans in cell.possi:
           cell.possi = {ans}
           s.solve_cell(cell)
+
+
+  def start_guessing(s):
+    s.try_find_correct_guess([s])
+
+  def map_guesses(s, obj):
+    for num in obj.unsolved()[0].possi:
+      pass
+
+  def try_find_correct_guess(s, guesses):
+    s.map_guesses(guesses[0])
 
   def __repr__(s):
     board = '''
@@ -119,9 +138,22 @@ class Sudoku:
     return possible
 
 
+class Guess(Sudoku):
+  def __init__(s, in_board, num):
+    s.board = deepcopy(in_board)
+    s.guess(num)
+
+  def guess(s, num):
+    cell =s.unsolved()[0]
+    cell.possi = {num}
+    s.solve_cell(cell)
 
 
-TEST = '---6891--8------2915------84-3----5-2----5----9-24-8-1-847--91-5------6--6-41----'
+class BoardException(Exception):
+  pass
+
+
+TEST = '-2-5----48-5--------48-9-2------5-73-9-----6-25-9------3-6-18--------4-71----4-9-'
 s = Sudoku(TEST)
 
 
