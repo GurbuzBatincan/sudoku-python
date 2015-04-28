@@ -1,9 +1,7 @@
-from pprint import pprint as pp
 from copy import deepcopy
 import re
 
 class Cell:
-
   def __init__(s, str_index, num):
     s.num = None if num == '-' else int(num)
     s.row = str_index // 9
@@ -15,9 +13,11 @@ class Cell:
 
 
 class Sudoku:
-
   def __init__(s, board_string):
     s.board = [Cell(i, c) for i, c in enumerate(board_string)]
+
+  def valid(s):
+    return True
 
   def cells_in_row(s, num):
     return [cell for cell in s.board if cell.row == num]
@@ -86,16 +86,24 @@ class Sudoku:
           cell.possi = {ans}
           s.solve_cell(cell)
 
-
   def start_guessing(s):
     s.try_find_correct_guess([s])
 
   def map_guesses(s, obj):
-    for num in obj.unsolved()[0].possi:
-      pass
+    return [Guess(obj.board, num).solve() for num in obj.unsolved()[0].possi]
 
   def try_find_correct_guess(s, guesses):
-    s.map_guesses(guesses[0])
+    guesses = [guess for guess in guesses if guess.valid()]
+    if not guesses:
+      return "no valid guess"
+    find_solved = [obj.board for obj in guesses if obj.solved()]
+    if find_solved:
+      s.board = find_solved[0]
+    else:
+      more_guesses = []
+      for guess in guesses:
+        more_guesses += s.map_guesses(guess)
+      s.try_find_correct_guess(more_guesses[:11])
 
   def __repr__(s):
     board = '''
@@ -143,17 +151,24 @@ class Guess(Sudoku):
     s.board = deepcopy(in_board)
     s.guess(num)
 
+  def solve(s):
+    for _ in range(10):
+      s.check_individuals()
+      s.scan_groups()
+      if s.solved():
+        break
+    return s
+
   def guess(s, num):
     cell =s.unsolved()[0]
     cell.possi = {num}
     s.solve_cell(cell)
 
+  def valid(s):
+    return all([any(cell.possi) for cell in s.board if not cell.num])
 
-class BoardException(Exception):
-  pass
 
-
-TEST = '-2-5----48-5--------48-9-2------5-73-9-----6-25-9------3-6-18--------4-71----4-9-'
+TEST = '----------2-65-------18--4--9----6-4-3---57-------------------73------9----------'
 s = Sudoku(TEST)
 
 
@@ -162,3 +177,6 @@ if __name__ == '__main__':
   s.solve()
   print(s)
   print(s.to_pos())
+  # g = Guess(s.board, 6)
+  # g.solve()
+  # print(g)
