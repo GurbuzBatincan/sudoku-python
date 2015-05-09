@@ -10,4 +10,8 @@ for i, line in enumerate(f):
   game.solve()
   print(i + 1)
   print(game) #if game.solved() else None
+<<<<<<< HEAD
   print(game.to_pos())
+=======
+  print(game.to_pos())
+>>>>>>> e5196f773e073ae3c790b5b300307146bd7144c0
